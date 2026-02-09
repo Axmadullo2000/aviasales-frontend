@@ -1,14 +1,21 @@
-import React from "react";
-import {cn} from "@/src/lib/utils/format";
+import React from 'react';
+import { cn } from '@/lib/utils/cn';
 
-interface CardProps {
+export interface CardProps {
     children: React.ReactNode;
     className?: string;
     padding?: 'none' | 'sm' | 'md' | 'lg';
     hover?: boolean;
+    onClick?: () => void;
 }
 
-export default function Card({ children, className, padding = 'md', hover = false }: CardProps) {
+export const Card: React.FC<CardProps> = ({
+                                              children,
+                                              className,
+                                              padding = 'md',
+                                              hover = false,
+                                              onClick,
+                                          }) => {
     const paddings = {
         none: '',
         sm: 'p-4',
@@ -21,11 +28,13 @@ export default function Card({ children, className, padding = 'md', hover = fals
             className={cn(
                 'bg-white rounded-lg border border-gray-200 shadow-sm',
                 paddings[padding],
-                hover && 'transition-shadow hover:shadow-md cursor-pointer',
+                hover && 'transition-shadow duration-200 hover:shadow-md',
+                onClick && 'cursor-pointer',
                 className
             )}
+            onClick={onClick}
         >
             {children}
         </div>
     );
-}
+};

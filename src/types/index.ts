@@ -1,4 +1,5 @@
 // ==================== ENUMS ====================
+
 export enum BookingStatus {
     PENDING = 'PENDING',
     CONFIRMED = 'CONFIRMED',
@@ -49,7 +50,8 @@ export enum FlightSortBy {
     DEPARTURE_TIME = 'DEPARTURE_TIME',
 }
 
-// ==================== FLIGHT ====================
+// ==================== AIRPORT & AIRLINE ====================
+
 export interface Airport {
     id: number;
     iataCode: string;
@@ -71,6 +73,8 @@ export interface Airline {
     isLowCost: boolean;
     rating: number;
 }
+
+// ==================== FLIGHTS ====================
 
 export interface FlightResponse {
     id: number;
@@ -106,7 +110,37 @@ export interface PopularDestinationResponse {
     avgPrice: number;
 }
 
-// ==================== BOOKING ====================
+export interface FlightSearchRequest {
+    originCode: string; // IATA code
+    destinationCode: string;
+    departureDate: string; // YYYY-MM-DD
+    passengers: number;
+    cabinClass: CabinClass;
+    sortBy?: FlightSortBy;
+}
+
+export interface RoundTripSearchRequest extends FlightSearchRequest {
+    returnDate: string;
+    flexibleDates?: boolean;
+    directOnly?: boolean;
+}
+
+export interface RoundTripSearchResponse {
+    outboundFlights: FlightResponse[];
+    returnFlights: FlightResponse[];
+    discount: number;
+}
+
+export interface AvailableSeatsResponse {
+    flightId: number;
+    cabinClass: CabinClass;
+    availableSeats: number;
+    totalSeats: number;
+    availableSeatNumbers: string[];
+}
+
+// ==================== BOOKINGS ====================
+
 export interface PassengerInfo {
     firstName: string;
     lastName: string;
@@ -129,6 +163,11 @@ export interface CreateBookingRequest {
     contactEmail: string;
     contactPhone: string;
     specialRequests?: string;
+}
+
+export interface ContactInfo {
+    email: string;
+    phone: string;
 }
 
 export interface BookingResponse {
@@ -164,11 +203,6 @@ export interface TicketResponse {
     cabinBaggage: number;
 }
 
-export interface ContactInfo {
-    email: string;
-    phone: string;
-}
-
 export interface BookingDetailResponse {
     id: number;
     bookingReference: string;
@@ -185,7 +219,12 @@ export interface BookingDetailResponse {
     tickets: TicketResponse[];
 }
 
-// ==================== PAYMENT ====================
+export interface CancelBookingRequest {
+    reason?: string;
+}
+
+// ==================== PAYMENTS ====================
+
 export interface CreatePaymentRequest {
     bookingReference: string;
     amount: number;
@@ -229,7 +268,49 @@ export interface ReceiptResponse {
     createdAt: string;
 }
 
+// ==================== PRICING ====================
+
+export interface DynamicPriceResponse {
+    flightId: number;
+    cabinClass: CabinClass;
+    basePrice: number;
+    dynamicPrice: number;
+    occupancyMultiplier: number;
+    timeMultiplier: number;
+    dayOfWeekMultiplier: number;
+    totalMultiplier: number;
+    priceIncrease: number;
+    percentageIncrease: number;
+    bookingDate: string;
+}
+
+export interface CalendarPriceResponse {
+    from: string;
+    to: string;
+    month: string;
+    cabinClass: CabinClass;
+    prices: Record<string, number>; // date -> price
+    minPrice: number;
+    maxPrice: number;
+    avgPrice: number;
+}
+
+export interface RoundTripDiscountResponse {
+    outboundFlightId: number;
+    returnFlightId: number;
+    cabinClass: CabinClass;
+    outboundPrice: number;
+    returnPrice: number;
+    totalPriceWithoutDiscount: number;
+    discount: number;
+    discountAmount: number;
+    totalPriceWithDiscount: number;
+    savings: number;
+    bookingDate: string;
+}
+
 // ==================== AUTH ====================
+
 export interface LoginRequest {
     email: string;
     password: string;
@@ -255,40 +336,9 @@ export interface User {
     role: 'USER' | 'ADMIN';
 }
 
-// ==================== SEARCH ====================
-export interface FlightSearchRequest {
-    originCode: string; // IATA code
-    destinationCode: string;
-    departureDate: string; // YYYY-MM-DD
-    passengers: number;
-    cabinClass: CabinClass;
-    sortBy?: FlightSortBy;
-}
+// ==================== PAGINATION ====================
 
-export interface RoundTripSearchRequest extends FlightSearchRequest {
-    returnDate: string;
-    flexibleDates?: boolean;
-    directOnly?: boolean;
-}
-
-// ==================== UI STATE ====================
-export interface SearchFilters {
-    priceRange: [number, number];
-    airlines: string[];
-    departureTime: 'morning' | 'afternoon' | 'evening' | 'night' | null;
-    stops: 'direct' | 'one-stop' | 'any';
-}
-
-export interface BookingFlowState {
-    step: 'flights' | 'passengers' | 'payment' | 'confirmation';
-    selectedFlight?: FlightResponse;
-    passengers: PassengerInfo[];
-    contactInfo?: ContactInfo;
-    specialRequests?: string;
-}
-
-// ==================== API RESPONSES ====================
-export interface PaginatedResponse<T> {
+export interface Page<T> {
     content: T[];
     totalElements: number;
     totalPages: number;
@@ -299,6 +349,8 @@ export interface PaginatedResponse<T> {
     empty: boolean;
 }
 
+// ==================== ERROR RESPONSE ====================
+
 export interface ErrorResponse {
     timestamp: string;
     status: number;
@@ -307,32 +359,12 @@ export interface ErrorResponse {
     path: string;
     validationErrors?: Record<string, string>;
 }
-// types/index.ts - TypeScript Types
 
-// Auth Types
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
+// ==================== UI STATE ====================
 
-export interface RegisterRequest {
-    email: string;
-    password: string;
-}
-
-export interface AuthResponse {
-    accessToken: string;
-    refreshToken: string;
-    user?: {
-        id: number;
-        email: string;
-        role: 'USER' | 'MANAGER' | 'ADMIN';
-    };
-}
-
-export interface User {
-    id: number;
-    email: string;
-    // @ts-ignore
-    role: 'USER' | 'MANAGER' | 'ADMIN';
+export interface SearchFilters {
+    priceRange: [number, number];
+    airlines: string[];
+    departureTime: 'morning' | 'afternoon' | 'evening' | 'night' | null;
+    stops: 'direct' | 'one-stop' | 'any';
 }

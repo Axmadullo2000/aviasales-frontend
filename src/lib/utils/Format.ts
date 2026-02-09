@@ -30,7 +30,7 @@ export function formatTime(dateString: string): string {
  * Format date and time
  */
 export function formatDateTime(dateString: string): string {
-    return format(parseISO(dateString), 'MMM dd, yyyy · HH:mm');
+    return format(parseISO(dateString), 'MMM dd, yyyy HH:mm');
 }
 
 /**
@@ -40,7 +40,6 @@ export function calculateDuration(departure: string, arrival: string): string {
     const minutes = differenceInMinutes(parseISO(arrival), parseISO(departure));
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-
     return `${hours}h ${mins}m`;
 }
 
@@ -62,9 +61,11 @@ export function formatPassengerCount(count: number): string {
  * Format cabin class
  */
 export function formatCabinClass(cabinClass: string): string {
-    return cabinClass.replace('_', ' ').toLowerCase()
+    return cabinClass
+        .replace('_', ' ')
+        .toLowerCase()
         .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 }
 
@@ -79,10 +80,7 @@ export function maskCardNumber(cardNumber: string): string {
  * Format card number with spaces
  */
 export function formatCardNumber(value: string): string {
-    return value
-        .replace(/\s/g, '')
-        .match(/.{1,4}/g)
-        ?.join(' ') || '';
+    return value.replace(/\s/g, '').match(/.{1,4}/g)?.join(' ') || '';
 }
 
 /**
@@ -91,11 +89,9 @@ export function formatCardNumber(value: string): string {
 export function formatPhoneNumber(value: string): string {
     const cleaned = value.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})$/);
-
     if (match) {
         return `+${match[1]} ${match[2]} ${match[3]}-${match[4]}-${match[5]}`;
     }
-
     return value;
 }
 
@@ -109,13 +105,11 @@ export function getRelativeTime(dateString: string): string {
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 0) {
-        // Past
         const absMins = Math.abs(diffMins);
         if (absMins < 60) return `${absMins} minutes ago`;
         if (absMins < 1440) return `${Math.floor(absMins / 60)} hours ago`;
         return `${Math.floor(absMins / 1440)} days ago`;
     } else {
-        // Future
         if (diffMins < 60) return `in ${diffMins} minutes`;
         if (diffMins < 1440) return `in ${Math.floor(diffMins / 60)} hours`;
         return `in ${Math.floor(diffMins / 1440)} days`;
@@ -128,11 +122,4 @@ export function getRelativeTime(dateString: string): string {
 export function truncate(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + '...';
-}
-
-/**
- * Combine class names (for Tailwind)
- */
-export function cn(...classes: (string | undefined | null | false)[]): string {
-    return classes.filter(Boolean).join(' ');
 }

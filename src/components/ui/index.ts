@@ -1,4 +1,11 @@
-export { default as Button } from './Button';
-export { default as Input } from './Input';
-export { default as Select } from './Select';
-export { default as Card } from './Card';
+export type { BadgeProps } from './Badge';
+export { Badge } from './Badge';
+export type { ButtonProps } from './Button';
+export { Button } from './Button';
+export type { CardProps } from './Card';
+export { Card } from './Card';
+export type { InputProps } from './Input';
+export { Input } from './Input';
+export type { SelectProps } from './Select';
+export { Select } from './Select';
+export type { SpinnerProps } from './Spinner';

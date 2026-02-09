@@ -1,57 +1,121 @@
-import axios from 'axios';
+import { apiClient } from '@/lib/api/Сlient';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+import type {
+    FlightSearchRequest,
+    FlightResponse,
+    FlightDetailResponse,
+    Airport,
+    Airline,
+    PopularDestinationResponse,
+    RoundTripSearchRequest,
+    RoundTripSearchResponse,
+    RoundTripDiscountResponse,
+    AvailableSeatsResponse,
+    Page,
+    CabinClass,
+} from '@/types';
 
-const apiClient = axios.create({
-    baseURL: BASE_URL,
-    timeout: 30000,
-    headers: {
-        'Content-Type': 'application/json',
+export const flightsApi = {
+    search: async (
+        params: FlightSearchRequest & { page?: number; size?: number }
+    ): Promise<Page<FlightResponse>> => {
+        const response = await apiClient.get<Page<FlightResponse>>('/flights/search', {
+            params: {
+                from: params.originCode,
+                to: params.destinationCode,
+                date: params.departureDate,
+                passengers: params.passengers,
+                cabinClass: params.cabinClass,
+                sortBy: params.sortBy || 'PRICE',
+                page: params.page || 0,
+                size: params.size || 10,
+            },
+        });
+        return response.data;
     },
-});
 
-// Request interceptor - add token
-apiClient.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
+    getById: async (id: number): Promise<FlightDetailResponse> => {
+        const response = await apiClient.get<FlightDetailResponse>(`/flights/${id}`);
+        return response.data;
     },
-    (error) => Promise.reject(error)
-);
 
-// Response interceptor - handle 401
-apiClient.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
+    getByNumber: async (flightNumber: string): Promise<FlightDetailResponse> => {
+        const response = await apiClient.get<FlightDetailResponse>(`/flights/number/${flightNumber}`);
+        return response.data;
+    },
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
+    getAirports: async (): Promise<Airport[]> => {
+        const response = await apiClient.get<Airport[]>('/flights/airports');
+        return response.data;
+    },
 
-            try {
-                const refreshToken = localStorage.getItem('refreshToken');
-                const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-                    refreshToken,
-                });
+    searchAirports: async (query: string): Promise<Airport[]> => {
+        const response = await apiClient.get<Airport[]>('/flights/airports/search', {
+            params: { query },
+        });
+        return response.data;
+    },
 
-                const { accessToken } = response.data;
-                localStorage.setItem('accessToken', accessToken);
+    getAirport: async (iataCode: string): Promise<Airport> => {
+        const response = await apiClient.get<Airport>(`/flights/airports/${iataCode}`);
+        return response.data;
+    },
 
-                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-                return apiClient(originalRequest);
-            } catch (refreshError) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+    getAirlines: async (): Promise<Airline[]> => {
+        const response = await apiClient.get<Airline[]>('/flights/airlines');
+        return response.data;
+    },
+
+    getAirline: async (iataCode: string): Promise<Airline> => {
+        const response = await apiClient.get<Airline>(`/flights/airlines/${iataCode}`);
+        return response.data;
+    },
+
+    getPopularDestinations: async (limit = 5): Promise<PopularDestinationResponse[]> => {
+        const response = await apiClient.get<PopularDestinationResponse[]>(
+            '/flights/popular-destinations',
+            { params: { limit } }
+        );
+        return response.data;
+    },
+
+    getAvailableSeats: async (
+        flightId: number,
+        cabinClass: CabinClass
+    ): Promise<AvailableSeatsResponse> => {
+        const response = await apiClient.get<AvailableSeatsResponse>(
+            `/flights/flights/${flightId}/seats`,
+            { params: { cabinClass } }
+        );
+        return response.data;
+    },
+
+    // Round trip
+    searchRoundTrip: async (request: RoundTripSearchRequest): Promise<RoundTripSearchResponse> => {
+        const response = await apiClient.post<RoundTripSearchResponse>(
+            '/flights/round-trip/search',
+            request
+        );
+        return response.data;
+    },
+
+    getRoundTripDiscount: async (
+        outboundFlightId: number,
+        returnFlightId: number,
+        cabinClass: CabinClass,
+        bookingDate?: string
+    ): Promise<RoundTripDiscountResponse> => {
+        const response = await apiClient.get<RoundTripDiscountResponse>(
+            '/flights/round-trip/discount',
+            {
+                params: {
+                    outboundFlightId,
+                    returnFlightId,
+                    cabinClass,
+                    bookingDate,
+                },
             }
-        }
-
-        return Promise.reject(error);
-    }
-);
-
-export default apiClient;
+        );
+        return response.data;
+    },
+};

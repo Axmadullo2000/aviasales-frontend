@@ -1,13 +1,17 @@
-import React from "react";
-import {cn} from "@/src/lib/utils/format";
+import React from 'react';
+import { cn } from '@/lib/utils/cn';
 
-interface BadgeProps {
+export interface BadgeProps {
     children: React.ReactNode;
     variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
     size?: 'sm' | 'md';
 }
 
-export function Badge({ children, variant = 'default', size = 'md' }: BadgeProps) {
+export const Badge: React.FC<BadgeProps> = ({
+                                                children,
+                                                variant = 'default',
+                                                size = 'md',
+                                            }) => {
     const variants = {
         default: 'bg-gray-100 text-gray-800',
         success: 'bg-green-100 text-green-800',
@@ -22,9 +26,14 @@ export function Badge({ children, variant = 'default', size = 'md' }: BadgeProps
     };
 
     return (
-        <span className={cn('inline-flex items-center rounded-full font-medium', variants[variant], sizes[size])}>
+        <span
+            className={cn(
+                'inline-flex items-center font-medium rounded-full',
+                variants[variant],
+                sizes[size]
+            )}
+        >
       {children}
     </span>
     );
-}
-
+};

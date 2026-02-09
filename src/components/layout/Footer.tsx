@@ -1,4 +1,5 @@
-import Link from "next/link";
+import Link from 'next/link';
+import { ROUTES } from '@/lib/config/routes';
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -19,9 +20,21 @@ export function Footer() {
                     <div>
                         <h3 className="text-white font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href="/" className="hover:text-white transition">Home</Link></li>
-                            <li><Link href="/search" className="hover:text-white transition">Search Flights</Link></li>
-                            <li><Link href="/my-bookings" className="hover:text-white transition">My Bookings</Link></li>
+                            <li>
+                                <Link href={ROUTES.HOME} className="hover:text-white transition">
+                                    Home
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href={ROUTES.SEARCH} className="hover:text-white transition">
+                                    Search Flights
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href={ROUTES.MY_BOOKINGS} className="hover:text-white transition">
+                                    My Bookings
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
@@ -29,9 +42,21 @@ export function Footer() {
                     <div>
                         <h3 className="text-white font-semibold mb-4">Support</h3>
                         <ul className="space-y-2 text-sm">
-                            <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                            <li><a href="#" className="hover:text-white transition">Contact Us</a></li>
-                            <li><a href="#" className="hover:text-white transition">FAQs</a></li>
+                            <li>
+                                <a href="#" className="hover:text-white transition">
+                                    Help Center
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" className="hover:text-white transition">
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" className="hover:text-white transition">
+                                    FAQs
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
@@ -39,9 +64,9 @@ export function Footer() {
                     <div>
                         <h3 className="text-white font-semibold mb-4">Contact</h3>
                         <ul className="space-y-2 text-sm">
-                            <li>📧 support@aviasales.uz</li>
+                            <li>✉️ support@aviasales.uz</li>
                             <li>📞 +998 99 749 4262</li>
-                            <li>🇺🇿 Tashkent, Uzbekistan</li>
+                            <li>📍 Tashkent, Uzbekistan</li>
                         </ul>
                     </div>
                 </div>

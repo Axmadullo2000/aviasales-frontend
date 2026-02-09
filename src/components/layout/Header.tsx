@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Plane, User, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../../components/ui/Button';
-import { useAuthStore } from '../../lib/store/AuthStore';
-import { cn } from '../../lib/utils/Format';
+import { Button } from '@/components/ui';
+import { useAuthStore } from '@/lib/store';
+import { cn } from '@/lib/utils/cn';
+import { ROUTES } from '@/lib/config/routes';
 
 export function Header() {
     const pathname = usePathname();
@@ -16,12 +17,12 @@ export function Header() {
 
     const handleLogout = () => {
         clearAuth();
-        router.push('/login');
+        router.push(ROUTES.LOGIN);
     };
 
     const navigation = [
-        { name: 'Home', href: '/' },
-        { name: 'My Bookings', href: '/my-bookings', protected: true },
+        { name: 'Home', href: ROUTES.HOME },
+        { name: 'My Bookings', href: ROUTES.MY_BOOKINGS, protected: true },
     ];
 
     return (
@@ -30,7 +31,7 @@ export function Header() {
                 <div className="flex justify-between h-16">
                     {/* Logo */}
                     <div className="flex items-center">
-                        <Link href="/" className="flex items-center space-x-2">
+                        <Link href={ROUTES.HOME} className="flex items-center space-x-2">
                             <Plane className="w-8 h-8 text-blue-600" />
                             <span className="text-xl font-bold text-gray-900">Aviasales</span>
                         </Link>
@@ -40,7 +41,6 @@ export function Header() {
                     <div className="hidden md:flex md:items-center md:space-x-6">
                         {navigation.map((item) => {
                             if (item.protected && !isAuthenticated) return null;
-
                             return (
                                 <Link
                                     key={item.name}
@@ -69,14 +69,10 @@ export function Header() {
                             </div>
                         ) : (
                             <div className="flex items-center space-x-3">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => router.push('/login')}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => router.push(ROUTES.LOGIN)}>
                                     Login
                                 </Button>
-                                <Button size="sm" onClick={() => router.push('/register')}>
+                                <Button size="sm" onClick={() => router.push(ROUTES.REGISTER)}>
                                     Sign Up
                                 </Button>
                             </div>
@@ -89,11 +85,7 @@ export function Header() {
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="p-2 rounded-md text-gray-700 hover:bg-gray-100"
                         >
-                            {mobileMenuOpen ? (
-                                <X className="w-6 h-6" />
-                            ) : (
-                                <Menu className="w-6 h-6" />
-                            )}
+                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
                     </div>
                 </div>
@@ -103,7 +95,6 @@ export function Header() {
                     <div className="md:hidden py-4 space-y-3 border-t">
                         {navigation.map((item) => {
                             if (item.protected && !isAuthenticated) return null;
-
                             return (
                                 <Link
                                     key={item.name}
@@ -124,9 +115,7 @@ export function Header() {
                         <div className="pt-4 border-t space-y-3">
                             {isAuthenticated ? (
                                 <>
-                                    <div className="px-3 py-2 text-sm text-gray-700">
-                                        {user?.email}
-                                    </div>
+                                    <div className="px-3 py-2 text-sm text-gray-700">{user?.email}</div>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -146,7 +135,7 @@ export function Header() {
                                         size="sm"
                                         className="w-full"
                                         onClick={() => {
-                                            router.push('/login');
+                                            router.push(ROUTES.LOGIN);
                                             setMobileMenuOpen(false);
                                         }}
                                     >
@@ -156,7 +145,7 @@ export function Header() {
                                         size="sm"
                                         className="w-full"
                                         onClick={() => {
-                                            router.push('/register');
+                                            router.push(ROUTES.REGISTER);
                                             setMobileMenuOpen(false);
                                         }}
                                     >

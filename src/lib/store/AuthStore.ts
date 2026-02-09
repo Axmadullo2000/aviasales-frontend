@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '../../types';
+import type { User } from '@/types';
 
 interface AuthState {
     user: User | null;
@@ -24,9 +24,10 @@ export const useAuthStore = create<AuthState>()(
 
             setAuth: (user, accessToken, refreshToken) => {
                 // Save tokens to localStorage for axios interceptor
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+                }
                 set({
                     user,
                     accessToken,
@@ -36,9 +37,10 @@ export const useAuthStore = create<AuthState>()(
             },
 
             clearAuth: () => {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                }
                 set({
                     user: null,
                     accessToken: null,
@@ -48,9 +50,10 @@ export const useAuthStore = create<AuthState>()(
             },
 
             updateTokens: (accessToken, refreshToken) => {
-                localStorage.setItem('accessToken', accessToken);
-                localStorage.setItem('refreshToken', refreshToken);
-
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('refreshToken', refreshToken);
+                }
                 set({ accessToken, refreshToken });
             },
         }),

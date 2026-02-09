@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { FlightResponse, PassengerInfo, ContactInfo, CabinClass } from '../../types';
+import type { FlightResponse, PassengerInfo, ContactInfo, CabinClass } from '@/types';
 
 type BookingStep = 'search' | 'flight-select' | 'passengers' | 'payment' | 'confirmation';
 
@@ -55,7 +55,8 @@ export const useBookingStore = create<BookingState>((set) => ({
 
     setSearchParams: (searchParams) => set({ searchParams }),
 
-    setSelectedFlight: (selectedFlight) => set({ selectedFlight, step: 'passengers' }),
+    setSelectedFlight: (selectedFlight) =>
+        set({ selectedFlight, step: 'passengers' }),
 
     setPassengers: (passengers) => set({ passengers }),
 

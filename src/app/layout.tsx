@@ -1,32 +1,12 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { Providers } from './providers';
-import { Header } from '../components/layout/Header';
-import { Footer } from '../components/layout/Footer';
+import { QueryProvider } from '@/providers/QueryProvider';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-
-export const metadata: Metadata = {
-    title: 'Aviasales - Flight Booking',
-    description: 'Search, compare and book flights worldwide',
-};
-
-export default function RootLayout({
-                                       children,
-                                   }: {
-    children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
-        <body className={inter.variable}>
-        <Providers>
-            <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-            </div>
-        </Providers>
+        <body>
+        <QueryProvider>
+            {children}
+        </QueryProvider>
         </body>
         </html>
     );
