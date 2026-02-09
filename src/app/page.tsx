@@ -6,9 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plane, Calendar, Users, Search } from 'lucide-react';
 import { Button, Input, Select, Card } from '../components/ui/';
-import { flightSearchSchema, type FlightSearchFormData } from '../lib/utils/validation';
+import { flightSearchSchema, type FlightSearchFormData } from '../lib/utils/Validation';
 import { CabinClass } from '../types';
-import { useBookingStore } from '../lib/store/bookingStore';
+import { useBookingStore } from '../lib/store/BookingStore';
 
 export default function HomePage() {
   const router = useRouter();

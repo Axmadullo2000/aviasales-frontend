@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Plane, User, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../../components/ui/Button';
-import { useAuthStore } from '../../lib/store/authStore';
-import { cn } from '../../lib/utils/format';
+import { useAuthStore } from '../../lib/store/AuthStore';
+import { cn } from '../../lib/utils/Format';
 
 export function Header() {
     const pathname = usePathname();
