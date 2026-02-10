@@ -77,6 +77,7 @@ export interface Airline {
 // ==================== FLIGHTS ====================
 
 export interface FlightResponse {
+    cabinClass: string;
     id: number;
     flightNumber: string;
     airline: Airline;

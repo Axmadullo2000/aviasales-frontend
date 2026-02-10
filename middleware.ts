@@ -8,7 +8,7 @@ const PUBLIC_ROUTES = ['/login', '/register'];
 const ALWAYS_PUBLIC_PREFIXES = [
     '/_next',
     '/favicon',
-    '/api/v1/auth',
+    '/v1/auth',
     '/api/flights/search',
     '/api/flights/airports',
     '/api/flights/airlines',
