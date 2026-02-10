@@ -6,7 +6,7 @@ class ApiClient {
 
     constructor() {
         this.client = axios.create({
-            baseURL: env.API_URL,
+            baseURL: env.API_URL, // Теперь это будет http://localhost:8080/api/v1
             timeout: 30000,
             headers: {
                 'Content-Type': 'application/json',

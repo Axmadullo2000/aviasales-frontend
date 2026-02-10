@@ -7,16 +7,46 @@
 }
 
 body {
-  @apply bg-gray-50 text-gray-900;
+  @apply bg-gray-50 text-gray-900 antialiased;
+  font-family: var(--font-inter);
 }
 
 @layer base {
-  * {
+  *,
+  ::before,
+  ::after {
     @apply border-border;
   }
+
   body {
-    @apply bg-gray-50 text-gray-900;
     font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 font-semibold;
+  }
+
+  p {
+    @apply text-gray-700 leading-relaxed;
+  }
+
+  /* 🔑 FORM ELEMENTS — КРИТИЧНО */
+  input,
+  textarea,
+  select {
+    @apply bg-white text-gray-900 placeholder-gray-400;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-400;
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    @apply bg-gray-100 text-gray-500;
   }
 }
 
@@ -37,10 +67,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #9ca3af; /* gray-400 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #6b7280; /* gray-500 */
 }

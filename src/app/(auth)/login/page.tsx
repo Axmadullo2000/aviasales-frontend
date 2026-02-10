@@ -1,21 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { Mail, Lock, Plane } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Input, Card } from '../../../components/ui';//@/components/ui
-import { loginSchema, type LoginFormData } from '@/src/lib/utils/validation';//@/lib/utils/validation
-import { api } from '@/src/lib/api';
-import { useAuthStore } from '@/src/lib/store/authStore';
+import { Button, Input, Card } from '@/components/ui';
+import { loginSchema, type LoginFormData } from '@/lib/utils/Validation';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/lib/store/AuthStore';
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const setAuth = useAuthStore((state) => state.setAuth);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Get the page the user was trying to visit before being redirected to login
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
 
     const {
         register,
@@ -27,29 +31,26 @@ export default function LoginPage() {
 
     const onSubmit = async (data: LoginFormData) => {
         setIsLoading(true);
-
         try {
-            // Call login API
             const response = await api.auth.login(data);
 
-            // Decode JWT to get user info (simple decode, not verification)
-            const tokenPayload = JSON.parse(
-                atob(response.accessToken.split('.')[1])
-            );
+            // Decode JWT to get user info
+            const tokenPayload = JSON.parse(atob(response.accessToken.split('.')[1]));
 
-            // Set auth in store
             setAuth(
                 {
-                    id: tokenPayload.userId,
-                    email: data.email,
-                    role: tokenPayload.role,
+                    id: tokenPayload.id || tokenPayload.userId,
+                    email: tokenPayload.email || tokenPayload.sub,
+                    role: tokenPayload.role || tokenPayload.roles?.[0] || 'ROLE_USER',
                 },
                 response.accessToken,
                 response.refreshToken
             );
 
             toast.success('Login successful!');
-            router.push('/');
+
+            // Redirect to the page user originally wanted, or home
+            router.push(callbackUrl);
         } catch (error: any) {
             console.error('Login error:', error);
             toast.error(error.response?.data?.message || 'Login failed. Please try again.');
@@ -105,12 +106,7 @@ export default function LoginPage() {
                         </a>
                     </div>
 
-                    <Button
-                        type="submit"
-                        size="lg"
-                        className="w-full"
-                        isLoading={isLoading}
-                    >
+                    <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
                         Sign In
                     </Button>
                 </form>
@@ -125,18 +121,19 @@ export default function LoginPage() {
                 {/* Register Link */}
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">
-                        Don't have an account?{' '}
+                        Don&apos;t have an account?{' '}
                         <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
                             Sign up
                         </Link>
                     </p>
                 </div>
 
-                {/* Test Credentials (for development) */}
+                {/* Test Credentials */}
                 <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-xs font-semibold text-yellow-800 mb-2">Test Credentials:</p>
                     <p className="text-xs text-yellow-700">
-                        Email: axmadullo2000@gmail.com<br />
+                        Email: axmadullo2000@gmail.com
+                        <br />
                         Password: admin123
                     </p>
                 </div>

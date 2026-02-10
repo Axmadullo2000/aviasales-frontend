@@ -84,7 +84,7 @@ export const flightsApi = {
         cabinClass: CabinClass
     ): Promise<AvailableSeatsResponse> => {
         const response = await apiClient.get<AvailableSeatsResponse>(
-            `/flights/flights/${flightId}/seats`,
+            `/flights/${flightId}/seats`,
             { params: { cabinClass } }
         );
         return response.data;

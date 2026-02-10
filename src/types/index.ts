@@ -104,10 +104,12 @@ export interface FlightDetailResponse extends FlightResponse {
 }
 
 export interface PopularDestinationResponse {
-    airport: Airport;
+    city: string;
+    country: string;
+    iataCode: string;
     flightCount: number;
-    minPrice: number;
-    avgPrice: number;
+    minPrice?: number; // опционально, если бэкенд не возвращает
+    avgPrice?: number; // опционально
 }
 
 export interface FlightSearchRequest {
@@ -133,10 +135,11 @@ export interface RoundTripSearchResponse {
 
 export interface AvailableSeatsResponse {
     flightId: number;
+    flightNumber: string;
     cabinClass: CabinClass;
-    availableSeats: number;
+    occupiedSeats: string[];
     totalSeats: number;
-    availableSeatNumbers: string[];
+    availableSeats: number;
 }
 
 // ==================== BOOKINGS ====================
@@ -271,28 +274,39 @@ export interface ReceiptResponse {
 // ==================== PRICING ====================
 
 export interface DynamicPriceResponse {
-    flightId: number;
-    cabinClass: CabinClass;
     basePrice: number;
-    dynamicPrice: number;
+    finalPrice: number;
+    taxes: number;
+    totalPrice: number;
+    occupancyPercent: number;
+    daysUntilDeparture: number;
     occupancyMultiplier: number;
     timeMultiplier: number;
     dayOfWeekMultiplier: number;
-    totalMultiplier: number;
-    priceIncrease: number;
-    percentageIncrease: number;
-    bookingDate: string;
+    demandLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+    recommendation: string;
+}
+
+export interface DayPrice {
+    date: string;
+    minPrice: number;
+    availableSeats: number;
+    dayOfWeek: string;
+    isWeekend: boolean;
+    isHoliday: boolean;
+    holidayName: string;
+    isCheapest: boolean;
+    priceReason: string;
+    demandLevel: string;
+    flightCount: number;
 }
 
 export interface CalendarPriceResponse {
-    from: string;
-    to: string;
     month: string;
-    cabinClass: CabinClass;
-    prices: Record<string, number>; // date -> price
-    minPrice: number;
-    maxPrice: number;
-    avgPrice: number;
+    route: string;
+    prices: DayPrice[];
+    cheapestDay: string;
+    averagePrice: number;
 }
 
 export interface RoundTripDiscountResponse {
