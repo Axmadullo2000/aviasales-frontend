@@ -8,6 +8,7 @@ import { Button, Input, Select } from '@/components/ui';
 import { flightSearchSchema, type FlightSearchFormData } from '@/lib/utils/Validation';
 import { useBookingStore } from '@/lib/store/BookingStore';
 import { cn } from '@/lib/utils/cn';
+import type { CabinClass } from '@/types';
 
 type Variant = 'default' | 'hero';
 
@@ -27,12 +28,20 @@ export function SearchForm({ variant = 'default' }: SearchFormProps) {
         resolver: zodResolver(flightSearchSchema),
         defaultValues: {
             passengers: 1,
-            cabinClass: 'ECONOMY',
+            cabinClass: 'ECONOMY' as CabinClass,
         },
     });
 
     const onSubmit = handleSubmit((data) => {
-        setSearchParams(data);
+        // Правильная структура для setSearchParams
+        setSearchParams({
+            from: data.from.toUpperCase(),
+            to: data.to.toUpperCase(),
+            date: data.departureDate,
+            passengers: data.passengers,
+            cabinClass: data.cabinClass as CabinClass,
+        });
+
         const params = new URLSearchParams({
             from: data.from.toUpperCase(),
             to: data.to.toUpperCase(),

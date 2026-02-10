@@ -4,14 +4,20 @@ import {useFieldArray, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useRouter} from 'next/navigation';
 import {ArrowRight, Trash2, UserPlus} from 'lucide-react';
-import {Button, Card, Input} from '@/components/ui';
-import {bookingSchema} from '@/lib/utils/Validation';
+import {Button, Card, Input, Select} from '@/components/ui';
+import {bookingSchema, type PassengerFormData, type ContactInfoFormData} from '@/lib/utils/Validation';
 import {useBookingStore} from '@/lib/store/BookingStore';
-import {useCreateBooking} from '@/lib/hooks'; //@/lib/hooks/UseCreateBooking
+import {useCreateBooking} from '@/lib/hooks';
+import type {CreateBookingRequest, CabinClass} from '@/types';
+
+interface BookingFormData {
+  passengers: PassengerFormData[];
+  contactInfo: ContactInfoFormData;
+}
 
 export default function BookingPage() {
   const router = useRouter();
-  const { selectedFlight, passengers, setPassengers, contactInfo, setContactInfo } = useBookingStore();
+  const { selectedFlight, searchParams } = useBookingStore();
   const { mutate: createBooking, isPending } = useCreateBooking();
 
   const {
@@ -19,11 +25,11 @@ export default function BookingPage() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
-      passengers: passengers.length ? passengers : [{}],
-      contactInfo: contactInfo || { email: '', phone: '' },
+      passengers: [{}] as any,
+      contactInfo: { email: '', phone: '' },
     },
   });
 
@@ -32,24 +38,22 @@ export default function BookingPage() {
     name: 'passengers',
   });
 
-  const onSubmit = (data: any) => {
-    setPassengers(data.passengers);
-    setContactInfo(data.contactInfo);
-
+  const onSubmit = (data: BookingFormData) => {
     if (!selectedFlight) {
       alert('Рейс не выбран');
       return;
     }
 
-    // @ts-ignore
-    // @ts-ignore
-    createBooking({
+    const bookingRequest: CreateBookingRequest = {
       flightId: selectedFlight.id,
       passengers: data.passengers,
       contactEmail: data.contactInfo.email,
       contactPhone: data.contactInfo.phone,
-      defaultCabinClass: selectedFlight.cabinClass || 'ECONOMY',
-    });
+      defaultCabinClass: (searchParams?.cabinClass as CabinClass) || 'ECONOMY',
+      specialRequests: '',
+    };
+
+    createBooking(bookingRequest);
   };
 
   if (!selectedFlight) {
@@ -87,11 +91,59 @@ export default function BookingPage() {
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-5">
-                          <Input {...register(`passengers.${index}.firstName`)} label="Имя" />
-                          <Input {...register(`passengers.${index}.lastName`)} label="Фамилия" />
-                          <Input {...register(`passengers.${index}.passportNumber`)} label="Номер паспорта" />
-                          <Input {...register(`passengers.${index}.dateOfBirth`)} type="date" label="Дата рождения" />
-                          {/* ... остальные поля по аналогии ... */}
+                          <Input
+                              {...register(`passengers.${index}.firstName`)}
+                              label="Имя"
+                              error={errors.passengers?.[index]?.firstName?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.lastName`)}
+                              label="Фамилия"
+                              error={errors.passengers?.[index]?.lastName?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.passportNumber`)}
+                              label="Номер паспорта"
+                              error={errors.passengers?.[index]?.passportNumber?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.dateOfBirth`)}
+                              type="date"
+                              label="Дата рождения"
+                              error={errors.passengers?.[index]?.dateOfBirth?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.nationality`)}
+                              label="Национальность (код)"
+                              placeholder="UZ"
+                              maxLength={2}
+                              className="uppercase"
+                              error={errors.passengers?.[index]?.nationality?.message as string | undefined}
+                          />
+                          <Select
+                              {...register(`passengers.${index}.gender`)}
+                              label="Пол"
+                              options={[
+                                { value: 'MALE', label: 'Мужской' },
+                                { value: 'FEMALE', label: 'Женский' },
+                                { value: 'OTHER', label: 'Другой' },
+                              ]}
+                              error={errors.passengers?.[index]?.gender?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.passportCountry`)}
+                              label="Страна паспорта (код)"
+                              placeholder="UZ"
+                              maxLength={2}
+                              className="uppercase"
+                              error={errors.passengers?.[index]?.passportCountry?.message as string | undefined}
+                          />
+                          <Input
+                              {...register(`passengers.${index}.passportExpiry`)}
+                              type="date"
+                              label="Срок действия паспорта"
+                              error={errors.passengers?.[index]?.passportExpiry?.message as string | undefined}
+                          />
                         </div>
                       </div>
                   ))}
@@ -99,7 +151,7 @@ export default function BookingPage() {
                   <Button
                       type="button"
                       variant="outline"
-                      onClick={() => append({})}
+                      onClick={() => append({} as any)}
                       className="w-full"
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
@@ -110,8 +162,18 @@ export default function BookingPage() {
                   <div className="mt-12">
                     <h2 className="text-2xl font-bold mb-6">Контактные данные</h2>
                     <div className="grid md:grid-cols-2 gap-5">
-                      <Input {...register('contactInfo.email')} label="Email" type="email" />
-                      <Input {...register('contactInfo.phone')} label="Телефон" />
+                      <Input
+                          {...register('contactInfo.email')}
+                          label="Email"
+                          type="email"
+                          error={errors.contactInfo?.email?.message as string | undefined}
+                      />
+                      <Input
+                          {...register('contactInfo.phone')}
+                          label="Телефон"
+                          placeholder="+998901234567"
+                          error={errors.contactInfo?.phone?.message as string | undefined}
+                      />
                     </div>
                   </div>
 
@@ -128,7 +190,6 @@ export default function BookingPage() {
             <div className="md:col-span-1">
               <Card className="p-6 sticky top-6">
                 <h3 className="text-xl font-bold mb-6">Ваш рейс</h3>
-                {/* Здесь можно вывести краткую информацию о рейсе */}
                 <div className="space-y-4 text-sm">
                   <div className="flex justify-between">
                     <span>Рейс</span>
@@ -137,10 +198,19 @@ export default function BookingPage() {
                   <div className="flex justify-between">
                     <span>Откуда → Куда</span>
                     <span className="font-medium">
-                    {selectedFlight.origin.iataCode} → {selectedFlight.destination.iataCode}
-                  </span>
+                      {selectedFlight.origin.iataCode} → {selectedFlight.destination.iataCode}
+                    </span>
                   </div>
-                  {/* ... дата, класс, цена и т.д. ... */}
+                  <div className="flex justify-between">
+                    <span>Пассажиров</span>
+                    <span className="font-medium">{fields.length}</span>
+                  </div>
+                  {searchParams && (
+                      <div className="flex justify-between">
+                        <span>Класс</span>
+                        <span className="font-medium">{searchParams.cabinClass}</span>
+                      </div>
+                  )}
                 </div>
               </Card>
             </div>
