@@ -1,4 +1,148 @@
-// ==================== ENUMS ====================
+// =============================================
+// AUTH
+// =============================================
+
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface RegisterRequest {
+    email: string;
+    password: string;
+}
+
+export interface AuthResponse {
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface User {
+    id: string | number;
+    email: string;
+    role: string;
+}
+
+// =============================================
+// FLIGHTS
+// =============================================
+
+export type CabinClass = 'ECONOMY' | 'BUSINESS' | 'FIRST_CLASS';
+
+export type SortBy = 'PRICE' | 'DEPARTURE_TIME' | 'ARRIVAL_TIME' | 'DURATION';
+
+export interface Airport {
+    iataCode: string;
+    name: string;
+    city: string;
+    country: string;
+    countryCode: string;
+    timezone?: string;
+    latitude?: number;
+    longitude?: number;
+}
+
+export interface Airline {
+    iataCode: string;
+    name: string;
+    logoUrl?: string;
+    country?: string;
+}
+
+export interface FlightResponse {
+    id: number;
+    flightNumber: string;
+    airline: Airline;
+    origin: Airport;
+    destination: Airport;
+    departureTime: string;   // ISO 8601
+    arrivalTime: string;     // ISO 8601
+    economyPrice: number;
+    businessPrice: number;
+    firstClassPrice: number;
+    availableSeats: number;
+    aircraftType?: string;
+    status?: string;
+}
+
+export interface FlightDetailResponse extends FlightResponse {
+    totalSeats: number;
+    economySeats: number;
+    businessSeats: number;
+    firstClassSeats: number;
+    amenities?: string[];
+}
+
+export interface FlightSearchRequest {
+    originCode: string;
+    destinationCode: string;
+    departureDate: string;   // YYYY-MM-DD
+    passengers: number;
+    cabinClass: CabinClass;
+    sortBy?: SortBy;
+}
+
+export interface PopularDestinationResponse {
+    iataCode: string;
+    city: string;
+    country: string;
+    minPrice?: number;
+    imageUrl?: string;
+}
+
+export interface AvailableSeatsResponse {
+    flightId: number;
+    cabinClass: CabinClass;
+    availableSeats: number;
+}
+
+// Round trip
+export interface RoundTripSearchRequest {
+    originCode: string;
+    destinationCode: string;
+    departureDate: string;
+    returnDate: string;
+    passengers: number;
+    cabinClass: CabinClass;
+}
+
+export interface RoundTripSearchResponse {
+    outboundFlights: FlightResponse[];
+    returnFlights: FlightResponse[];
+}
+
+export interface RoundTripDiscountResponse {
+    discount: number;
+    discountPercent: number;
+    originalPrice: number;
+    discountedPrice: number;
+}
+
+// =============================================
+// PASSENGERS
+// =============================================
+
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
+export interface PassengerInfo {
+    firstName: string;
+    lastName: string;
+    passportNumber: string;
+    dateOfBirth: string;       // YYYY-MM-DD
+    nationality: string;       // 2-letter ISO (UZ, RU...)
+    gender: Gender;
+    passportCountry: string;   // 2-letter ISO
+    passportExpiry: string;    // YYYY-MM-DD
+}
+
+export interface ContactInfo {
+    email: string;
+    phone: string;
+}
+
+// =============================================
+// BOOKINGS
+// =============================================
 
 export enum BookingStatus {
     PENDING = 'PENDING',
@@ -16,228 +160,75 @@ export enum PaymentStatus {
     REFUNDED = 'REFUNDED',
 }
 
-export enum CabinClass {
-    ECONOMY = 'ECONOMY',
-    BUSINESS = 'BUSINESS',
-    FIRST_CLASS = 'FIRST_CLASS',
-}
-
-export enum FlightStatus {
-    SCHEDULED = 'SCHEDULED',
-    BOARDING = 'BOARDING',
-    DEPARTED = 'DEPARTED',
-    IN_FLIGHT = 'IN_FLIGHT',
-    ARRIVED = 'ARRIVED',
-    DELAYED = 'DELAYED',
-    CANCELLED = 'CANCELLED',
-}
-
-export enum Gender {
-    MALE = 'MALE',
-    FEMALE = 'FEMALE',
-    OTHER = 'OTHER',
-}
-
-export enum PaymentMethod {
-    CARD = 'CARD',
-    BANK_TRANSFER = 'BANK_TRANSFER',
-    CASH = 'CASH',
-}
-
-export enum FlightSortBy {
-    PRICE = 'PRICE',
-    DURATION = 'DURATION',
-    DEPARTURE_TIME = 'DEPARTURE_TIME',
-}
-
-// ==================== AIRPORT & AIRLINE ====================
-
-export interface Airport {
-    id: number;
-    iataCode: string;
-    name: string;
-    city: string;
-    country: string;
-    timezone: string;
-    latitude: number;
-    longitude: number;
-}
-
-export interface Airline {
-    id: number;
-    iataCode: string;
-    name: string;
-    logoUrl?: string;
-    baggageAllowance: number;
-    handLuggage: number;
-    isLowCost: boolean;
-    rating: number;
-}
-
-// ==================== FLIGHTS ====================
-
-export interface FlightResponse {
-    cabinClass: string;
-    id: number;
-    flightNumber: string;
-    airline: Airline;
-    origin: Airport;
-    destination: Airport;
-    departureTime: string; // ISO string
-    arrivalTime: string;
-    duration: string; // "4h 20m"
-    status: FlightStatus;
-    availableSeats: number;
-    economyPrice: number;
-    businessPrice?: number;
-    firstClassPrice?: number;
-    aircraftType?: string;
-}
-
-export interface FlightDetailResponse extends FlightResponse {
-    totalSeats: number;
-    economySeats: number;
-    businessSeats: number;
-    firstClassSeats: number;
-    economyAvailable: number;
-    businessAvailable: number;
-    firstClassAvailable: number;
-}
-
-export interface PopularDestinationResponse {
-    city: string;
-    country: string;
-    iataCode: string;
-    flightCount: number;
-    minPrice?: number; // опционально, если бэкенд не возвращает
-    avgPrice?: number; // опционально
-}
-
-export interface FlightSearchRequest {
-    originCode: string; // IATA code
-    destinationCode: string;
-    departureDate: string; // YYYY-MM-DD
-    passengers: number;
-    cabinClass: CabinClass;
-    sortBy?: FlightSortBy;
-}
-
-export interface RoundTripSearchRequest extends FlightSearchRequest {
-    returnDate: string;
-    flexibleDates?: boolean;
-    directOnly?: boolean;
-}
-
-export interface RoundTripSearchResponse {
-    outboundFlights: FlightResponse[];
-    returnFlights: FlightResponse[];
-    discount: number;
-}
-
-export interface AvailableSeatsResponse {
-    flightId: number;
-    flightNumber: string;
-    cabinClass: CabinClass;
-    occupiedSeats: string[];
-    totalSeats: number;
-    availableSeats: number;
-}
-
-// ==================== BOOKINGS ====================
-
-export interface PassengerInfo {
-    firstName: string;
-    lastName: string;
-    passportNumber: string;
-    dateOfBirth: string; // YYYY-MM-DD
-    nationality: string;
-    gender: Gender;
-    passportCountry: string;
-    passportExpiry: string;
-    cabinClass?: CabinClass;
-    seatNumber?: string;
-    seatPreference?: 'WINDOW' | 'AISLE' | 'MIDDLE';
-    saveForFuture?: boolean;
-}
-
 export interface CreateBookingRequest {
     flightId: number;
-    defaultCabinClass?: CabinClass;
     passengers: PassengerInfo[];
     contactEmail: string;
     contactPhone: string;
+    defaultCabinClass: CabinClass;
     specialRequests?: string;
-}
-
-export interface ContactInfo {
-    email: string;
-    phone: string;
-}
-
-export interface BookingResponse {
-    id: number;
-    bookingReference: string;
-    status: BookingStatus;
-    paymentStatus: PaymentStatus;
-    totalAmount: number;
-    paidAmount: number;
-    amountDue: number;
-    totalPassengers: number;
-    createdAt: string;
-    expiresAt: string;
-    paymentInstructions: string;
-}
-
-export interface TicketResponse {
-    id: number;
-    ticketNumber: string;
-    passengerName: string;
-    passengerFirstName: string;
-    passengerLastName: string;
-    flightNumber: string;
-    origin: string; // airport code
-    destination: string;
-    departureTime: string;
-    arrivalTime: string;
-    cabinClass: CabinClass;
-    seatNumber: string;
-    price: number;
-    status: string;
-    checkedBaggage: number;
-    cabinBaggage: number;
-}
-
-export interface BookingDetailResponse {
-    id: number;
-    bookingReference: string;
-    status: BookingStatus;
-    paymentStatus: PaymentStatus;
-    totalAmount: number;
-    paidAmount: number;
-    amountDue: number;
-    createdAt: string;
-    expiresAt: string;
-    confirmedAt?: string;
-    contactInfo: ContactInfo;
-    specialRequests?: string;
-    tickets: TicketResponse[];
 }
 
 export interface CancelBookingRequest {
     reason?: string;
 }
 
-// ==================== PAYMENTS ====================
+// Сокращённый ответ (для списка)
+export interface BookingResponse {
+    id: number;
+    bookingReference: string;
+    status: BookingStatus;
+    paymentStatus: PaymentStatus;
+    totalPassengers: number;
+    totalAmount: number;
+    amountDue: number;
+    createdAt: string;
+    expiresAt: string;
+}
+
+// Полный ответ с билетами (для страниц деталей и оплаты)
+export interface BookingDetailResponse extends BookingResponse {
+    contactEmail: string;
+    contactPhone: string;
+    tickets: TicketResponse[];
+}
+
+export interface TicketResponse {
+    id: number;
+    ticketNumber: string;
+    seatNumber?: string;
+    cabinClass: CabinClass;
+    price: number;
+    status: string;
+    passenger: PassengerInfo & { id?: number };
+    // Рейс — опционально (может прийти вложенным)
+    flight?: FlightResponse;
+}
+
+// =============================================
+// PAYMENTS
+// =============================================
+
+// Все поддерживаемые методы оплаты
+export type PaymentMethod =
+    | 'CREDIT_CARD'
+    | 'DEBIT_CARD'
+    | 'UZCARD'
+    | 'HUMO'
+    | 'BANK_TRANSFER'
+    | 'CASH';
 
 export interface CreatePaymentRequest {
     bookingReference: string;
     amount: number;
     paymentMethod: PaymentMethod;
+    // Данные карты (только для карточных методов)
     cardNumber?: string;
-    cardHolderName?: string;
-    expiryDate?: string; // MM/YY
+    cardHolder?: string;
+    expiryMonth?: string;
+    expiryYear?: string;
     cvv?: string;
-    idempotencyKey?: string;
+    expiryDate?: string
 }
 
 export interface PaymentResponse {
@@ -248,138 +239,50 @@ export interface PaymentResponse {
     paymentMethod: PaymentMethod;
     status: PaymentStatus;
     createdAt: string;
-    processedAt?: string;
-    failureReason?: string;
-    changeAmount?: number;
-    message?: string;
 }
 
 export interface PaymentStatusResponse {
     transactionId: string;
     status: PaymentStatus;
-    message: string;
+    message?: string;
 }
 
 export interface ReceiptResponse {
-    id: number;
-    receiptNumber: string;
-    transactionId: string;
     bookingReference: string;
-    passengerName: string;
-    flightDetails: string;
     amount: number;
-    paymentMethod: string;
-    createdAt: string;
+    paidAt: string;
+    receiptNumber: string;
 }
 
-// ==================== PRICING ====================
+// =============================================
+// PRICING
+// =============================================
 
 export interface DynamicPriceResponse {
+    flightId: number;
+    cabinClass: CabinClass;
     basePrice: number;
-    finalPrice: number;
-    taxes: number;
-    totalPrice: number;
-    occupancyPercent: number;
-    daysUntilDeparture: number;
-    occupancyMultiplier: number;
-    timeMultiplier: number;
-    dayOfWeekMultiplier: number;
-    demandLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
-    recommendation: string;
-}
-
-export interface DayPrice {
-    date: string;
-    minPrice: number;
-    availableSeats: number;
-    dayOfWeek: string;
-    isWeekend: boolean;
-    isHoliday: boolean;
-    holidayName: string;
-    isCheapest: boolean;
-    priceReason: string;
-    demandLevel: string;
-    flightCount: number;
+    dynamicPrice: number;
+    priceMultiplier: number;
 }
 
 export interface CalendarPriceResponse {
+    from: string;
+    to: string;
     month: string;
-    route: string;
-    prices: DayPrice[];
-    cheapestDay: string;
-    averagePrice: number;
+    prices: Record<string, number>; // "YYYY-MM-DD" -> price
 }
 
-export interface RoundTripDiscountResponse {
-    outboundFlightId: number;
-    returnFlightId: number;
-    cabinClass: CabinClass;
-    outboundPrice: number;
-    returnPrice: number;
-    totalPriceWithoutDiscount: number;
-    discount: number;
-    discountAmount: number;
-    totalPriceWithDiscount: number;
-    savings: number;
-    bookingDate: string;
-}
-
-// ==================== AUTH ====================
-
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface RegisterRequest {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-}
-
-export interface AuthResponse {
-    accessToken: string;
-    refreshToken: string;
-}
-
-export interface User {
-    id: number;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    role: 'USER' | 'ADMIN';
-}
-
-// ==================== PAGINATION ====================
+// =============================================
+// PAGINATION
+// =============================================
 
 export interface Page<T> {
     content: T[];
     totalElements: number;
     totalPages: number;
+    number: number;         // current page (0-indexed)
     size: number;
-    number: number; // current page
     first: boolean;
     last: boolean;
-    empty: boolean;
-}
-
-// ==================== ERROR RESPONSE ====================
-
-export interface ErrorResponse {
-    timestamp: string;
-    status: number;
-    error: string;
-    message: string;
-    path: string;
-    validationErrors?: Record<string, string>;
-}
-
-// ==================== UI STATE ====================
-
-export interface SearchFilters {
-    priceRange: [number, number];
-    airlines: string[];
-    departureTime: 'morning' | 'afternoon' | 'evening' | 'night' | null;
-    stops: 'direct' | 'one-stop' | 'any';
 }

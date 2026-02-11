@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api/Сlient';
+import { apiClient } from '../Сlient';
 import type {
     FlightSearchRequest,
     FlightResponse,
@@ -89,7 +89,6 @@ export const flightsApi = {
         return response.data;
     },
 
-    // Round trip
     searchRoundTrip: async (request: RoundTripSearchRequest): Promise<RoundTripSearchResponse> => {
         const response = await apiClient.post<RoundTripSearchResponse>(
             '/flights/round-trip/search',

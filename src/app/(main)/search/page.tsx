@@ -14,12 +14,25 @@ function SearchResults() {
     const searchParams = useSearchParams();
     const setSelectedFlight = useBookingStore((state) => state.setSelectedFlight);
 
+    // Считываем параметры с проверки на корректность для cabinClass
+    const originCode = searchParams.get('from') || '';
+    const destinationCode = searchParams.get('to') || '';
+    const departureDate = searchParams.get('date') || '';
+    const passengers = parseInt(searchParams.get('passengers') || '1');
+
+    // Проверяем и приводим cabinClass к типу CabinClass
+    const cabinClassParam = searchParams.get('cabinClass');
+    const cabinClass: CabinClass =
+        cabinClassParam === 'BUSINESS' || cabinClassParam === 'FIRST_CLASS' || cabinClassParam === 'ECONOMY'
+            ? cabinClassParam
+            : "ECONOMY";
+
     const params = {
-        originCode: searchParams.get('from') || '',
-        destinationCode: searchParams.get('to') || '',
-        departureDate: searchParams.get('date') || '',
-        passengers: parseInt(searchParams.get('passengers') || '1'),
-        cabinClass: (searchParams.get('cabinClass') as CabinClass) || CabinClass.ECONOMY,
+        originCode,
+        destinationCode,
+        departureDate,
+        passengers,
+        cabinClass,
     };
 
     const { data, isLoading, error } = useFlightSearch(params);

@@ -14,6 +14,7 @@ export function useCreateBooking() {
         mutationFn: (data: CreateBookingRequest) => api.bookings.create(data),
         onSuccess: (response) => {
             setBookingReference(response.bookingReference);
+            // Инвалидируем ВСЕ bookings кэши
             queryClient.invalidateQueries({ queryKey: ['bookings'] });
             toast.success('Booking created successfully!');
             router.push(`/payment?ref=${response.bookingReference}`);
@@ -26,28 +27,43 @@ export function useCreateBooking() {
 
 export function useBookingDetail(reference?: string) {
     return useQuery({
-        queryKey: ['bookings', reference],
-        queryFn: () => api.bookings.getByReference(reference!),
+        // ✅ Используем ['bookings', 'detail', reference] для консистентности
+        queryKey: ['bookings', 'detail', reference],
+        queryFn: () => {
+            if (!reference) throw new Error('No reference provided');
+            return api.bookings.getByReference(reference);
+        },
         enabled: !!reference,
+        retry: 1,
+        staleTime: 30000, // 30 seconds
     });
 }
 
 export function useUserBookings(page = 0, size = 10) {
     return useQuery({
-        queryKey: ['bookings', 'user', page, size],
+        // ✅ Используем ['bookings', 'list', ...] для списка
+        queryKey: ['bookings', 'list', page, size],
         queryFn: () => api.bookings.getUserBookings(page, size),
+        staleTime: 10000, // 10 seconds
     });
 }
 
 export function useCancelBooking() {
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     return useMutation({
         mutationFn: ({ reference, reason }: { reference: string; reason?: string }) =>
-            api.bookings.cancel(reference, { reason }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['bookings'] });
+            api.bookings.cancel(reference, { reason }),  // ✅ Передаём объект { reason }
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ['bookings', 'detail', variables.reference]
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['bookings', 'list']
+            });
             toast.success('Booking cancelled successfully');
+            router.push('/my-bookings');
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || 'Failed to cancel booking');
@@ -59,7 +75,6 @@ export function useDownloadTicket(reference: string) {
     return useMutation({
         mutationFn: () => api.bookings.downloadTicket(reference),
         onSuccess: (blob) => {
-            // Create download link
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

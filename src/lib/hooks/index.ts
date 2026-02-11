@@ -1,4 +1,9 @@
-export { useLogin, useRegister, useLogout } from './UseAuth';
+export {
+    useLogin,
+    useRegister,
+    useLogout
+} from './UseAuth';
+
 export {
     useFlightSearch,
     useFlightDetail,
@@ -6,20 +11,23 @@ export {
     useAirportSearch,
     usePopularDestinations,
     useAvailableSeats,
-    useDynamicPrice,
+    useDynamicPrice
 } from './UseFlights';
+
 export {
     useCreateBooking,
     useBookingDetail,
     useUserBookings,
     useCancelBooking,
-    useDownloadTicket,
+    useDownloadTicket
 } from './UseBooking';
+
 export {
     useCreatePayment,
     usePaymentStatus,
     usePaymentByBooking,
-    useDownloadReceipt,
+    useDownloadReceipt
 } from './UsePayment';
+
 export { useDebounce } from './UseDebounce';
 export { useLocalStorage } from './UseLocalStorage';

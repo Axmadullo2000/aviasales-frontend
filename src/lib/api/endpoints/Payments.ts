@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api/Сlient';
+import { apiClient } from '../Сlient';
 import type {
     CreatePaymentRequest,
     PaymentResponse,
@@ -53,7 +53,7 @@ export const pricingApi = {
     getCalendar: async (
         from: string,
         to: string,
-        month: string, // YYYY-MM
+        month: string,
         cabinClass: CabinClass
     ): Promise<CalendarPriceResponse> => {
         const response = await apiClient.get<CalendarPriceResponse>('/pricing/calendar', {

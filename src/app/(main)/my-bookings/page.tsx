@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Calendar, Clock, ChevronRight, Download, X, RefreshCw } from 'lucide-react';
-import { Card, Badge, Button, Spinner } from '@/components/ui';
-import { Header } from '@/components/layout/Header';
-import { useUserBookings, useCancelBooking, useDownloadTicket } from '@/lib/hooks';
-import { formatDate, formatPrice } from '@/lib/utils/Format';
-import { BookingStatus, PaymentStatus } from '@/types';
-import type { BookingResponse } from '@/types';
+import axiosInstance from '@/lib/axiosInstance';  // Импортируем настроенный axiosInstance
+import { Calendar, ChevronRight, Clock, Download, Plane, RefreshCw, X } from 'lucide-react';
 
+import { Badge, Button, Card, Spinner } from '@/components/ui';
+import { Header } from '@/components/layout/Header';
+import { useCancelBooking, useDownloadTicket, useUserBookings } from '@/lib/hooks';
+import { formatDate, formatPrice } from '@/lib/utils/Format';
+import type { BookingResponse } from '@/types';
+import { BookingStatus, PaymentStatus } from '@/types';
+
+// Статусы
 const statusVariant: Record<BookingStatus, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
     [BookingStatus.CONFIRMED]: 'success',
     [BookingStatus.PENDING]: 'warning',
@@ -34,6 +37,12 @@ const paymentLabel: Record<PaymentStatus, string> = {
     [PaymentStatus.REFUNDED]: 'Refunded',
 };
 
+// Получаем токен авторизации
+const getAuthToken = () => {
+    return localStorage.getItem('accessToken');  // Замените на правильный способ хранения токена
+};
+
+// Карточка бронирования
 function BookingCard({ booking }: { booking: BookingResponse }) {
     const router = useRouter();
     const { mutate: cancelBooking, isPending: isCancelling } = useCancelBooking();
@@ -42,6 +51,24 @@ function BookingCard({ booking }: { booking: BookingResponse }) {
     const canCancel = booking.status === BookingStatus.PENDING || booking.status === BookingStatus.CONFIRMED;
     const canDownload = booking.status === BookingStatus.CONFIRMED || booking.status === BookingStatus.COMPLETED;
     const canPay = booking.status === BookingStatus.PENDING && booking.paymentStatus === PaymentStatus.PENDING;
+
+    const handleDetailsClick = async () => {
+        try {
+            const token = getAuthToken();  // Получаем токен
+            const response = await axiosInstance.get(`/bookings/${booking.bookingReference}`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '', // Добавляем токен в заголовок
+                },
+            });
+            const bookingDetails = response.data;  // Получаем данные бронирования
+
+            // Пример перехода на страницу с деталями, передаем объект бронирования в качестве параметра (если необходимо)
+            console.log(bookingDetails);
+            router.push(`/my-bookings/${booking.bookingReference}`);
+        } catch (error) {
+            console.error('Failed to fetch booking details:', error);
+        }
+    };
 
     return (
         <Card className="hover:shadow-md transition-shadow" padding="md">
@@ -121,7 +148,7 @@ function BookingCard({ booking }: { booking: BookingResponse }) {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => router.push(`/my-bookings/${booking.bookingReference}`)}
+                            onClick={handleDetailsClick} // Вызов обработчика при клике
                             rightIcon={<ChevronRight className="w-4 h-4" />}
                         >
                             Details
@@ -184,7 +211,6 @@ export default function MyBookingsPage() {
                             <Spinner size="lg" />
                         </div>
                     )}
-
                     {/* Error */}
                     {error && (
                         <Card className="p-8 text-center">

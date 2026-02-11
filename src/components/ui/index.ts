@@ -10,3 +10,6 @@ export type { SelectProps } from './Select';
 export { Select } from './Select';
 export type { SpinnerProps } from './Spinner';
 export { Spinner } from './Spinner';
+
+export {Modal} from './Modal';
+export {Textarea} from './Textarea'

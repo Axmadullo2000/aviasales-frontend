@@ -6,7 +6,7 @@ class ApiClient {
 
     constructor() {
         this.client = axios.create({
-            baseURL: env.API_URL, // Теперь это будет http://localhost:8080/api/v1
+            baseURL: env.API_URL, // http://localhost:8080/api
             timeout: 30000,
             headers: {
                 'Content-Type': 'application/json',
@@ -26,6 +26,14 @@ class ApiClient {
                         config.headers.Authorization = `Bearer ${token}`;
                     }
                 }
+
+                // 🔍 DEBUG: Log all requests
+                console.log('🌐 API Request:', {
+                    method: config.method?.toUpperCase(),
+                    url: config.baseURL + config.url,
+                    headers: config.headers,
+                });
+
                 return config;
             },
             (error) => Promise.reject(error)
@@ -33,8 +41,17 @@ class ApiClient {
 
         // Response interceptor - handle 401
         this.client.interceptors.response.use(
-            (response) => response,
+            (response) => {
+                console.log('✅ API Response:', response.status, response.config.url);
+                return response;
+            },
             async (error: AxiosError) => {
+                console.error('❌ API Error:', {
+                    status: error.response?.status,
+                    url: error.config?.url,
+                    message: error.message,
+                });
+
                 const originalRequest = error.config as any;
 
                 if (error.response?.status === 401 && !originalRequest._retry) {
@@ -50,8 +67,8 @@ class ApiClient {
 
                         const { accessToken } = response.data;
                         localStorage.setItem('accessToken', accessToken);
-
                         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
                         return this.client(originalRequest);
                     } catch (refreshError) {
                         localStorage.removeItem('accessToken');
