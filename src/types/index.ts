@@ -2,16 +2,6 @@
 // AUTH
 // =============================================
 
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface RegisterRequest {
-    email: string;
-    password: string;
-}
-
 export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
@@ -285,4 +275,16 @@ export interface Page<T> {
     size: number;
     first: boolean;
     last: boolean;
+}
+
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
 }

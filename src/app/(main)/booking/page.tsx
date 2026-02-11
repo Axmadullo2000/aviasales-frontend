@@ -1,14 +1,16 @@
 'use client';
 
-import {useFieldArray, useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {useRouter} from 'next/navigation';
-import {ArrowRight, Trash2, UserPlus} from 'lucide-react';
-import {Button, Card, Input, Select} from '@/components/ui';
-import {bookingSchema, type PassengerFormData, type ContactInfoFormData} from '@/lib/utils/Validation';
-import {useBookingStore} from '@/lib/store/BookingStore';
-import {useCreateBooking} from '@/lib/hooks';
-import type {CreateBookingRequest, CabinClass} from '@/types';
+import { useEffect } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Trash2, UserPlus } from 'lucide-react';
+import { Button, Card, Input, Select } from '@/components/ui';
+import { bookingSchema, type PassengerFormData, type ContactInfoFormData } from '@/lib/utils/Validation';
+import { useBookingStore } from '@/lib/store/BookingStore';
+import { useCreateBooking } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/store/AuthStore';  // Импортируем хранилище авторизации
+import type { CreateBookingRequest, CabinClass } from '@/types';
 
 interface BookingFormData {
   passengers: PassengerFormData[];
@@ -19,6 +21,13 @@ export default function BookingPage() {
   const router = useRouter();
   const { selectedFlight, searchParams } = useBookingStore();
   const { mutate: createBooking, isPending } = useCreateBooking();
+  const { isAuthenticated } = useAuthStore();  // Получаем состояние авторизации
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login?redirectTo=/booking');  // ← передаём куда вернуться
+    }
+  }, [isAuthenticated, router]);
 
   const {
     register,
@@ -56,9 +65,15 @@ export default function BookingPage() {
     createBooking(bookingRequest);
   };
 
-  if (!selectedFlight) {
-    router.push('/search');
-    return null;
+  // Если рейс не выбран, перенаправляем на страницу поиска
+  useEffect(() => {
+    if (!selectedFlight) {
+      router.push('/search');
+    }
+  }, [selectedFlight, router]);
+
+  if (!selectedFlight || !isAuthenticated) {
+    return null;  // Возвращаем null, чтобы не рендерить страницу, если пользователь не авторизован или рейс не выбран
   }
 
   return (
@@ -74,9 +89,7 @@ export default function BookingPage() {
                   {fields.map((field, index) => (
                       <div key={field.id} className="border rounded-xl p-6 relative">
                         <div className="flex justify-between items-center mb-6">
-                          <h2 className="text-xl font-semibold">
-                            Пассажир {index + 1}
-                          </h2>
+                          <h2 className="text-xl font-semibold">Пассажир {index + 1}</h2>
                           {fields.length > 1 && (
                               <Button
                                   type="button"
@@ -94,23 +107,23 @@ export default function BookingPage() {
                           <Input
                               {...register(`passengers.${index}.firstName`)}
                               label="Имя"
-                              error={errors.passengers?.[index]?.firstName?.message as string | undefined}
+                              error={errors.passengers?.[index]?.firstName?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.lastName`)}
                               label="Фамилия"
-                              error={errors.passengers?.[index]?.lastName?.message as string | undefined}
+                              error={errors.passengers?.[index]?.lastName?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.passportNumber`)}
                               label="Номер паспорта"
-                              error={errors.passengers?.[index]?.passportNumber?.message as string | undefined}
+                              error={errors.passengers?.[index]?.passportNumber?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.dateOfBirth`)}
                               type="date"
                               label="Дата рождения"
-                              error={errors.passengers?.[index]?.dateOfBirth?.message as string | undefined}
+                              error={errors.passengers?.[index]?.dateOfBirth?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.nationality`)}
@@ -118,7 +131,7 @@ export default function BookingPage() {
                               placeholder="UZ"
                               maxLength={2}
                               className="uppercase"
-                              error={errors.passengers?.[index]?.nationality?.message as string | undefined}
+                              error={errors.passengers?.[index]?.nationality?.message}
                           />
                           <Select
                               {...register(`passengers.${index}.gender`)}
@@ -128,7 +141,7 @@ export default function BookingPage() {
                                 { value: 'FEMALE', label: 'Женский' },
                                 { value: 'OTHER', label: 'Другой' },
                               ]}
-                              error={errors.passengers?.[index]?.gender?.message as string | undefined}
+                              error={errors.passengers?.[index]?.gender?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.passportCountry`)}
@@ -136,13 +149,13 @@ export default function BookingPage() {
                               placeholder="UZ"
                               maxLength={2}
                               className="uppercase"
-                              error={errors.passengers?.[index]?.passportCountry?.message as string | undefined}
+                              error={errors.passengers?.[index]?.passportCountry?.message}
                           />
                           <Input
                               {...register(`passengers.${index}.passportExpiry`)}
                               type="date"
                               label="Срок действия паспорта"
-                              error={errors.passengers?.[index]?.passportExpiry?.message as string | undefined}
+                              error={errors.passengers?.[index]?.passportExpiry?.message}
                           />
                         </div>
                       </div>
@@ -151,7 +164,18 @@ export default function BookingPage() {
                   <Button
                       type="button"
                       variant="outline"
-                      onClick={() => append({} as any)}
+                      onClick={() =>
+                          append({
+                            firstName: '',
+                            lastName: '',
+                            passportNumber: '',
+                            dateOfBirth: '',
+                            nationality: '',
+                            gender: 'MALE',
+                            passportCountry: '',
+                            passportExpiry: '',
+                          })
+                      }
                       className="w-full"
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
@@ -166,19 +190,24 @@ export default function BookingPage() {
                           {...register('contactInfo.email')}
                           label="Email"
                           type="email"
-                          error={errors.contactInfo?.email?.message as string | undefined}
+                          error={errors.contactInfo?.email?.message}
                       />
                       <Input
                           {...register('contactInfo.phone')}
                           label="Телефон"
                           placeholder="+998901234567"
-                          error={errors.contactInfo?.phone?.message as string | undefined}
+                          error={errors.contactInfo?.phone?.message}
                       />
                     </div>
                   </div>
 
                   <div className="pt-8 border-t">
-                    <Button type="submit" size="lg" className="w-full text-lg" isLoading={isPending}>
+                    <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full text-lg"
+                        loading={isPending}  // или использовать isPending.toString()
+                    >
                       Перейти к оплате <ArrowRight className="ml-3 w-6 h-6" />
                     </Button>
                   </div>
@@ -198,8 +227,8 @@ export default function BookingPage() {
                   <div className="flex justify-between">
                     <span>Откуда → Куда</span>
                     <span className="font-medium">
-                      {selectedFlight.origin.iataCode} → {selectedFlight.destination.iataCode}
-                    </span>
+                    {selectedFlight.origin.iataCode} → {selectedFlight.destination.iataCode}
+                  </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Пассажиров</span>

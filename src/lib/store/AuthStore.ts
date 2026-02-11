@@ -45,27 +45,29 @@ export const useAuthStore = create<AuthState>((set) => ({
             const accessToken = localStorage.getItem('accessToken');
 
             if (userStr && accessToken) {
-                // Проверяем не истёк ли токен
                 const payload = JSON.parse(atob(accessToken.split('.')[1]));
                 const isExpired = payload.exp * 1000 < Date.now();
 
                 if (!isExpired) {
                     const user = JSON.parse(userStr);
-                    // Восстанавливаем cookie (мог пропасть после перезагрузки)
                     document.cookie = `accessToken=${accessToken}; path=/; max-age=900; SameSite=Lax`;
                     set({ user, isAuthenticated: true });
                 } else {
-                    // Токен истёк — пробуем рефрешнуть тихо через refreshToken
+                    // Токен истёк — всё равно восстанавливаем user,
+                    // axiosInstance сам сделает refresh при первом запросе
                     const refreshToken = localStorage.getItem('refreshToken');
                     if (refreshToken) {
-                        // axiosInstance сам подхватит при первом запросе
                         const user = JSON.parse(userStr);
                         set({ user, isAuthenticated: true });
+                    } else {
+                        // Нет refresh токена — чистим всё
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('user');
                     }
                 }
             }
         } catch {
-            // Повреждённые данные — чистим
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');

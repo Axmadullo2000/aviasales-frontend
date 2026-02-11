@@ -38,22 +38,16 @@ export function usePaymentByBooking(bookingReference?: string) {
     });
 }
 
-export function useDownloadReceipt(bookingReference: string) {
+export const useDownloadReceipt = (reference: string) => {
     return useMutation({
-        mutationFn: () => api.payments.downloadReceipt(bookingReference),
-        onSuccess: (blob) => {
+        mutationFn: async () => {
+            const blob = await api.payments.downloadReceipt(reference);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `receipt-${bookingReference}.pdf`;
-            document.body.appendChild(link);
+            link.download = `receipt-${reference}.pdf`;
             link.click();
-            document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            toast.success('Receipt downloaded successfully');
-        },
-        onError: () => {
-            toast.error('Failed to download receipt');
         },
     });
-}
+};

@@ -50,5 +50,5 @@ export const bookingsApi = {
             responseType: 'blob',
         });
         return response.data;
-    },
+    }
 };

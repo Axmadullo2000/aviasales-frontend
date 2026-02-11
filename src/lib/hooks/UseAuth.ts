@@ -5,31 +5,29 @@ import { api } from '../api';
 import { useAuthStore } from '@/lib/store';
 import type { LoginRequest, RegisterRequest } from '@/types';
 
-export function useLogin() {
+export function useLogin(redirectTo: string = '/') {
     const router = useRouter();
     const setAuth = useAuthStore((state) => state.setAuth);
 
     return useMutation({
         mutationFn: (data: LoginRequest) => api.auth.login(data),
         onSuccess: (response) => {
-            // Decode JWT to get user info (simple decode, not verification)
-            const tokenPayload = JSON.parse(atob(response.accessToken.split('.')[1]));
-
+            const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
+            // ↓ payload.id и payload.roles — именно такие поля в твоём JWT
             setAuth(
                 {
-                    id: tokenPayload.userId,
-                    email: tokenPayload.sub,
-                    role: tokenPayload.role,
+                    id: payload.id,
+                    email: payload.sub,
+                    role: payload.roles?.[0] || 'ROLE_USER',
                 },
                 response.accessToken,
                 response.refreshToken
             );
-
-            toast.success('Login successful!');
-            router.push('/');
+            toast.success('Вход выполнен!');
+            router.push(redirectTo);
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+            toast.error(error.response?.data?.message || 'Ошибка входа. Попробуйте снова.');
         },
     });
 }

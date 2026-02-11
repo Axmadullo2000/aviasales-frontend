@@ -5,7 +5,7 @@ import {useParams, useRouter} from 'next/navigation';
 import {ArrowLeft, CreditCard, Download, Plane, X} from 'lucide-react';
 import {Badge, Button, Card, Modal, Spinner, Textarea} from '@/components/ui';
 import {Header} from '@/components/layout/Header';
-import {useBookingDetail, useCancelBooking, useDownloadTicket} from '@/lib/hooks';
+import {useBookingDetail, useCancelBooking, useDownloadReceipt, useDownloadTicket} from '@/lib/hooks';
 import {formatPrice} from '@/lib/utils/Format';
 import type {TicketResponse} from '@/types';
 import {BookingStatus, PaymentStatus} from '@/types';
@@ -34,6 +34,8 @@ function BookingDetailContent() {
     const { data: booking, isLoading, error } = useBookingDetail(reference);
     const { mutate: cancelBooking, isPending: isCancelling } = useCancelBooking();
     const { mutate: downloadTicket, isPending: isDownloading } = useDownloadTicket(reference);
+    const { mutate: downloadReceipt, isPending: isDownloadingReceipt } = useDownloadReceipt(reference);
+
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [cancellationReason, setCancellationReason] = useState('');
@@ -177,6 +179,20 @@ function BookingDetailContent() {
                                         Download Ticket
                                     </Button>
                                 )}
+
+                                {/* 3. Кнопка — после Download Ticket */}
+                                {canDownload && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        isLoading={isDownloadingReceipt}
+                                        onClick={() => downloadReceipt()}
+                                        leftIcon={<Download className="w-4 h-4" />}
+                                    >
+                                        Download Receipt
+                                    </Button>
+                                )}
+
                                 {canCancel && (
                                     <Button variant="danger" className="w-full" isLoading={isCancelling} onClick={() => setIsModalOpen(true)} leftIcon={<X className="w-4 h-4" />}>
                                         Cancel Booking
