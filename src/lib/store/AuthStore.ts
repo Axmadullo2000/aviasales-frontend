@@ -1,68 +1,74 @@
+// src/lib/store/AuthStore.ts
+// ЗАМЕНИТЕ ПОЛНОСТЬЮ существующий AuthStore.ts
+
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { User } from '@/types';
+
+interface User {
+    id: string | number;
+    email: string;
+    role: string;
+}
 
 interface AuthState {
     user: User | null;
-    accessToken: string | null;
-    refreshToken: string | null;
     isAuthenticated: boolean;
-
-    // Actions
     setAuth: (user: User, accessToken: string, refreshToken: string) => void;
     clearAuth: () => void;
-    updateTokens: (accessToken: string, refreshToken: string) => void;
+    initFromStorage: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
-            user: null,
-            accessToken: null,
-            refreshToken: null,
-            isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set) => ({
+    user: null,
+    isAuthenticated: false,
 
-            setAuth: (user, accessToken, refreshToken) => {
-                // Save tokens to localStorage for axios interceptor
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('refreshToken', refreshToken);
-                }
-                set({
-                    user,
-                    accessToken,
-                    refreshToken,
-                    isAuthenticated: true,
-                });
-            },
+    setAuth: (user, accessToken, refreshToken) => {
+        // Сохраняем в cookie (для middleware) и localStorage (для axiosInstance)
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=900; SameSite=Lax`;
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('user', JSON.stringify(user));
+        set({ user, isAuthenticated: true });
+    },
 
-            clearAuth: () => {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                }
-                set({
-                    user: null,
-                    accessToken: null,
-                    refreshToken: null,
-                    isAuthenticated: false,
-                });
-            },
+    clearAuth: () => {
+        document.cookie = 'accessToken=; path=/; max-age=0';
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        set({ user: null, isAuthenticated: false });
+    },
 
-            updateTokens: (accessToken, refreshToken) => {
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('refreshToken', refreshToken);
+    // Восстанавливаем сессию после перезагрузки страницы
+    initFromStorage: () => {
+        try {
+            const userStr = localStorage.getItem('user');
+            const accessToken = localStorage.getItem('accessToken');
+
+            if (userStr && accessToken) {
+                // Проверяем не истёк ли токен
+                const payload = JSON.parse(atob(accessToken.split('.')[1]));
+                const isExpired = payload.exp * 1000 < Date.now();
+
+                if (!isExpired) {
+                    const user = JSON.parse(userStr);
+                    // Восстанавливаем cookie (мог пропасть после перезагрузки)
+                    document.cookie = `accessToken=${accessToken}; path=/; max-age=900; SameSite=Lax`;
+                    set({ user, isAuthenticated: true });
+                } else {
+                    // Токен истёк — пробуем рефрешнуть тихо через refreshToken
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (refreshToken) {
+                        // axiosInstance сам подхватит при первом запросе
+                        const user = JSON.parse(userStr);
+                        set({ user, isAuthenticated: true });
+                    }
                 }
-                set({ accessToken, refreshToken });
-            },
-        }),
-        {
-            name: 'auth-storage',
-            partialize: (state) => ({
-                user: state.user,
-                isAuthenticated: state.isAuthenticated,
-            }),
+            }
+        } catch {
+            // Повреждённые данные — чистим
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
         }
-    )
-);
+    },
+}));
